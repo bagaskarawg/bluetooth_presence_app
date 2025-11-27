@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import LoginScreen from './src/screens/LoginScreen';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { View, Text, ActivityIndicator } from 'react-native';
 
 import TeacherDashboard from './src/screens/TeacherDashboard';
