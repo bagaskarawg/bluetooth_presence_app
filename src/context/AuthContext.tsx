@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { User, Role } from '../types';
-import { MockApi } from '../api/mockApi';
+import { Api, setAuthToken } from '../api/api';
 
 interface AuthContextType {
     user: User | null;
@@ -18,9 +18,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (id: string, password: string, role: Role) => {
         setIsLoading(true);
         try {
-            const loggedInUser = await MockApi.login(id, password, role);
+            console.log('logging in')
+            const { user: loggedInUser, token } = await Api.login(id, password, role);
+            setAuthToken(token);
             setUser(loggedInUser);
         } catch (error) {
+            console.error('err', error)
             throw error;
         } finally {
             setIsLoading(false);
@@ -28,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const logout = () => {
+        setAuthToken(null);
         setUser(null);
     };
 

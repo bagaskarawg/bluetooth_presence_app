@@ -1,5 +1,6 @@
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import { BleManager, Device } from 'react-native-ble-plx';
+import BLEAdvertiser from 'react-native-ble-advertiser';
 
 // Interface for our Bluetooth Service
 export interface IBluetoothService {
@@ -10,52 +11,110 @@ export interface IBluetoothService {
     stopScanning(): Promise<void>;
 }
 
-// Mock Implementation for Simulator
-class MockBluetoothService implements IBluetoothService {
-    private isAdvertising = false;
+class RealBluetoothService implements IBluetoothService {
+    private manager: BleManager;
     private isScanning = false;
-    private intervalId: NodeJS.Timeout | null = null;
+
+    constructor() {
+        this.manager = new BleManager();
+    }
 
     async initialize(): Promise<void> {
-        console.log('[MockBLE] Initialized');
+        if (Platform.OS === 'android') {
+            await this.requestAndroidPermissions();
+        }
+        BLEAdvertiser.setCompanyId(0x00E0); // Google Company ID as example
+    }
+
+    private async requestAndroidPermissions() {
+        if (Platform.Version >= 31) {
+            const result = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+            ]);
+
+            if (
+                result['android.permission.BLUETOOTH_SCAN'] !== PermissionsAndroid.RESULTS.GRANTED ||
+                result['android.permission.BLUETOOTH_CONNECT'] !== PermissionsAndroid.RESULTS.GRANTED ||
+                result['android.permission.BLUETOOTH_ADVERTISE'] !== PermissionsAndroid.RESULTS.GRANTED
+            ) {
+                Alert.alert('Izin Ditolak', 'Aplikasi membutuhkan izin Bluetooth untuk berjalan.');
+            }
+        } else {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+            );
+            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                Alert.alert('Izin Ditolak', 'Aplikasi membutuhkan izin Lokasi untuk memindai Bluetooth.');
+            }
+        }
     }
 
     async startAdvertising(name: string, serviceUUID: string): Promise<void> {
-        this.isAdvertising = true;
-        console.log(`[MockBLE] Advertising: ${name} with UUID: ${serviceUUID}`);
+        console.log(`[BLE] Starting Advertising: ${name} (${serviceUUID})`);
+        try {
+            await BLEAdvertiser.broadcast(serviceUUID, [12, 34, 56], {
+                advertiseMode: BLEAdvertiser.ADVERTISE_MODE_BALANCED,
+                txPowerLevel: BLEAdvertiser.ADVERTISE_TX_POWER_MEDIUM,
+                connectable: false, // Beacon mode usually not connectable for simple presence
+                includeDeviceName: true,
+                includeTxPowerLevel: true,
+            });
+            console.log('[BLE] Advertising Started');
+        } catch (error) {
+            console.error('[BLE] Advertising Error:', error);
+            throw error;
+        }
     }
 
     async stopAdvertising(): Promise<void> {
-        this.isAdvertising = false;
-        console.log('[MockBLE] Stopped Advertising');
+        console.log('[BLE] Stopping Advertising');
+        try {
+            await BLEAdvertiser.stopBroadcast();
+            console.log('[BLE] Advertising Stopped');
+        } catch (error) {
+            console.error('[BLE] Stop Advertising Error:', error);
+        }
     }
 
     async startScanning(serviceUUID: string, onDeviceFound: (device: any) => void): Promise<void> {
+        if (this.isScanning) return;
         this.isScanning = true;
-        console.log(`[MockBLE] Scanning for UUID: ${serviceUUID}`);
+        console.log(`[BLE] Starting Scanning for UUID: ${serviceUUID}`);
 
-        // Simulate finding a device after 2 seconds
-        this.intervalId = setInterval(() => {
-            if (this.isScanning) {
-                const mockDevice = {
-                    id: 'mock-device-id',
-                    name: 'Kelas Mock',
-                    serviceUUIDs: [serviceUUID],
-                };
-                onDeviceFound(mockDevice);
+        this.manager.startDeviceScan(null, null, (error, device) => {
+            if (error) {
+                console.error('[BLE] Scan Error:', error);
+                this.isScanning = false;
+                return;
             }
-        }, 2000);
+
+            if (device) {
+                // Check if device matches our criteria
+                // Note: device.serviceUUIDs might be null on some platforms/devices until connected
+                // So we might rely on name or just list all and let UI filter.
+                // For now, pass everything and let UI filter or check name/UUID if available.
+
+                // Simplified filter: if it has a name, pass it.
+                if (device.name) {
+                    onDeviceFound({
+                        id: device.id,
+                        name: device.name,
+                        rssi: device.rssi,
+                        serviceUUIDs: device.serviceUUIDs
+                    });
+                }
+            }
+        });
     }
 
     async stopScanning(): Promise<void> {
+        if (!this.isScanning) return;
+        this.manager.stopDeviceScan();
         this.isScanning = false;
-        if (this.intervalId) clearInterval(this.intervalId);
-        console.log('[MockBLE] Stopped Scanning');
+        console.log('[BLE] Scanning Stopped');
     }
 }
 
-// Real Implementation (Placeholder for now, will implement if on real device)
-// Note: react-native-ble-plx setup is complex and might crash simulator.
-// We will default to Mock for now to ensure stability during development.
-
-export const BluetoothService = new MockBluetoothService();
+export const BluetoothService = new RealBluetoothService();

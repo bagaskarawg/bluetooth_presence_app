@@ -27,7 +27,7 @@ function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
         <Stack.Screen name="Login" component={LoginScreen} />
-      ) : user.role === 'STUDENT' ? (
+      ) : user.role.toUpperCase() === 'STUDENT' ? (
         <>
           <Stack.Screen name="StudentDashboard" component={StudentDashboard} />
           <Stack.Screen name="ScanClass" component={ScanClassScreen} />

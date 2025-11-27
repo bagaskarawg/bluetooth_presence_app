@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BluetoothService } from '../services/BluetoothService';
-import { MockApi } from '../api/mockApi';
+import { Api } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Users, StopCircle } from 'lucide-react-native';
@@ -21,7 +21,7 @@ export default function CreateClassScreen() {
         let interval: NodeJS.Timeout;
         if (isSessionActive && classId) {
             interval = setInterval(async () => {
-                const data = await MockApi.getLiveAttendance(classId);
+                const data = await Api.getLiveAttendance(classId);
                 setAttendanceList(data);
             }, 2000);
         }
@@ -38,7 +38,7 @@ export default function CreateClassScreen() {
 
         try {
             // 1. Create Class in Backend
-            const newClass = await MockApi.createClassSession(user!.id, subjectName);
+            const newClass = await Api.createClassSession(subjectName);
             setClassId(newClass.id);
             setIsSessionActive(true);
 
@@ -54,7 +54,7 @@ export default function CreateClassScreen() {
     const stopSession = async () => {
         try {
             if (classId) {
-                await MockApi.endClassSession(classId);
+                await Api.endClassSession(classId);
             }
             await BluetoothService.stopAdvertising();
             setIsSessionActive(false);

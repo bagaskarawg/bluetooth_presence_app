@@ -16,9 +16,11 @@ export default function LoginScreen() {
             Alert.alert('Error', 'Mohon isi semua kolom.');
             return;
         }
+
         try {
             await login(id, password, role);
         } catch (error: any) {
+            console.error(error)
             Alert.alert('Login Gagal', error.message);
         }
     };
@@ -27,7 +29,7 @@ export default function LoginScreen() {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Sistem Presensi</Text>
-                <Text style={styles.subtitle}>Universitas Mock</Text>
+                <Text style={styles.subtitle}>Fakultas Teknik Universitas Suryakancana</Text>
             </View>
 
             <View style={styles.roleContainer}>

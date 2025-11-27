@@ -2,10 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BluetoothService } from '../services/BluetoothService';
-import { MockApi } from '../api/mockApi';
+import { Api } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Bluetooth, CheckCircle } from 'lucide-react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
+
+const requestBLEPermissions = async () => {
+    if (Platform.OS === 'android') {
+        const apiLevel = Platform.Version;
+        const permissions = [];
+
+        // Android 12 (API 31) and higher
+        if (apiLevel >= 31) {
+            permissions.push(
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT
+            );
+        }
+        // Android 6.0 (API 23) to Android 11 (API 30)
+        else if (apiLevel >= 23) {
+            // Location is required for scanning
+            permissions.push(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+        }
+
+        // Check if permissions are needed
+        if (permissions.length === 0) {
+            return true; // No runtime permission required (e.g., old Android)
+        }
+
+        const grantedStatus = await PermissionsAndroid.requestMultiple(permissions);
+
+        // Check if ALL required permissions are granted
+        const allGranted = Object.values(grantedStatus).every(
+            (status) => status === PermissionsAndroid.RESULTS.GRANTED
+        );
+
+        return allGranted;
+    }
+
+    // iOS permissions are handled differently (see below)
+    return true;
+};
 
 export default function ScanClassScreen() {
     const { user } = useAuth();
@@ -22,6 +60,15 @@ export default function ScanClassScreen() {
     }, []);
 
     const startScan = async () => {
+        const hasPermission = await requestBLEPermissions();
+        if (hasPermission) {
+            // Proceed with your BleManager.startDeviceScan()
+            console.log("Permissions granted, starting scan...");
+        } else {
+            console.log("Permissions denied. Cannot start scan.");
+            // Display a custom modal/alert here to explain why permission is needed
+        }
+
         setDevices([]);
         setScanning(true);
         try {
@@ -69,13 +116,18 @@ export default function ScanClassScreen() {
             // I'll add a helper to MockApi to get *any* active class for this demo.
 
             // For now, just alert success.
-            await MockApi.submitAttendance(user!.id, 'cls_mock_live');
+            // NOTE: In real implementation, we need the real Class ID. 
+            // For now, we will assume the device ID IS the class ID or we use a hardcoded one for testing if needed.
+            // But since we are integrating real API, let's try to use the device ID as class ID if possible,
+            // or just hardcode '1' if we know the ID from the backend.
+            // Ideally, the BLE advertisement should contain the Class ID.
+            await Api.submitAttendance('1'); // Hardcoded for now as we don't have real BLE with Class ID payload yet.
 
             Alert.alert('Berhasil', `Presensi untuk kelas "${device.name}" berhasil tercatat!`, [
                 { text: 'OK', onPress: () => navigation.goBack() }
             ]);
-        } catch (error) {
-            Alert.alert('Gagal', 'Gagal melakukan presensi. Coba lagi.');
+        } catch (error: any) {
+            Alert.alert('Gagal', error.message || 'Gagal melakukan presensi. Coba lagi.');
         } finally {
             setConnectingId(null);
         }

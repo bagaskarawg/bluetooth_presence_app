@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { MockApi } from '../api/mockApi';
+import { Api } from '../api/api';
 import { ClassSession } from '../types';
 import { Plus, LogOut, Calendar } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -20,7 +20,7 @@ export default function TeacherDashboard() {
     const loadClasses = async () => {
         if (user) {
             try {
-                const data = await MockApi.getTeacherClasses(user.id);
+                const data = await Api.getTeacherClasses();
                 setClasses(data);
             } catch (error) {
                 console.error(error);
