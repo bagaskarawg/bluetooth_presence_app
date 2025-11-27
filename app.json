@@ -7,10 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "packagerOpts": {
-      "hostType": "tunnel",
-      "scheme": "https"
-    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -37,8 +33,7 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.INTERNET"
       ],
-      "package": "id.bagaskarawg.presenceapp",
-      "usesCleartextTraffic": true
+      "package": "id.bagaskarawg.presenceapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
