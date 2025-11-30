@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { Api } from '../api/api';
@@ -11,6 +11,7 @@ export default function TeacherDashboard() {
     const { user, logout } = useAuth();
     const [classes, setClasses] = useState<ClassSession[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation<any>();
 
     useEffect(() => {
@@ -26,12 +27,21 @@ export default function TeacherDashboard() {
                 console.error(error);
             } finally {
                 setLoading(false);
+                setRefreshing(false);
             }
         }
     };
 
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadClasses();
+    };
+
     const renderItem = ({ item }: { item: ClassSession }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('ClassDetails', { classId: item.id })}
+        >
             <View style={styles.cardHeader}>
                 <Text style={styles.subjectName}>{item.name}</Text>
                 {item.is_active && <View style={styles.activeBadge}><Text style={styles.activeText}>AKTIF</Text></View>}
@@ -40,7 +50,7 @@ export default function TeacherDashboard() {
                 <Calendar size={16} color="#666" />
                 <Text style={styles.dateText}>{new Date(item.start_time).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -76,6 +86,9 @@ export default function TeacherDashboard() {
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={styles.list}
                         ListEmptyComponent={<Text style={styles.emptyText}>Belum ada kelas.</Text>}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }
                     />
                 )}
             </View>

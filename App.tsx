@@ -9,6 +9,7 @@ import TeacherDashboard from './src/screens/TeacherDashboard';
 import CreateClassScreen from './src/screens/CreateClassScreen';
 import StudentDashboard from './src/screens/StudentDashboard';
 import ScanClassScreen from './src/screens/ScanClassScreen';
+import ClassDetailsScreen from './src/screens/ClassDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,13 +30,14 @@ function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
       ) : user.role.toUpperCase() === 'STUDENT' ? (
         <>
-          <Stack.Screen name="StudentDashboard" component={StudentDashboard} />
-          <Stack.Screen name="ScanClass" component={ScanClassScreen} />
+          <Stack.Screen name="StudentDashboard" component={StudentDashboard} options={{ headerShown: false }} />
+          <Stack.Screen name="ScanClass" component={ScanClassScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>
-          <Stack.Screen name="TeacherDashboard" component={TeacherDashboard} />
-          <Stack.Screen name="CreateClass" component={CreateClassScreen} />
+          <Stack.Screen name="TeacherDashboard" component={TeacherDashboard} options={{ headerShown: false }} />
+          <Stack.Screen name="CreateClass" component={CreateClassScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ClassDetails" component={ClassDetailsScreen} options={{ headerShown: false }} />
         </>
       )}
     </Stack.Navigator>

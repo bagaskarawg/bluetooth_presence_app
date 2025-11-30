@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ export default function StudentDashboard() {
     const { user, logout } = useAuth();
     const navigation = useNavigation<any>();
     const [history, setHistory] = React.useState<any[]>([]);
+    const [refreshing, setRefreshing] = React.useState(false);
     const { Api } = require('../api/api'); // Import Api here to avoid circular dependency issues if any, or just standard import
 
     React.useEffect(() => {
@@ -21,8 +22,38 @@ export default function StudentDashboard() {
             setHistory(data);
         } catch (error) {
             console.error(error);
+        } finally {
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadHistory();
+    };
+
+    const renderHeader = () => (
+        <View>
+            <View style={styles.card}>
+                <Text style={styles.cardTitle}>Presensi Kelas</Text>
+                <Text style={styles.cardDescription}>
+                    Pindai kelas yang sedang berlangsung di sekitarmu untuk melakukan presensi.
+                </Text>
+                <TouchableOpacity
+                    style={styles.scanButton}
+                    onPress={() => navigation.navigate('ScanClass')}
+                >
+                    <ScanLine size={24} color="#fff" />
+                    <Text style={styles.scanButtonText}>Pindai Kelas</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.sectionHeader}>
+                <History size={20} color="#333" />
+                <Text style={styles.sectionTitle}>Riwayat Presensi</Text>
+            </View>
+        </View>
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -36,58 +67,40 @@ export default function StudentDashboard() {
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.content}>
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Presensi Kelas</Text>
-                    <Text style={styles.cardDescription}>
-                        Pindai kelas yang sedang berlangsung di sekitarmu untuk melakukan presensi.
-                    </Text>
-                    <TouchableOpacity
-                        style={styles.scanButton}
-                        onPress={() => navigation.navigate('ScanClass')}
-                    >
-                        <ScanLine size={24} color="#fff" />
-                        <Text style={styles.scanButtonText}>Pindai Kelas</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.historySection}>
-                    <View style={styles.sectionHeader}>
-                        <History size={20} color="#333" />
-                        <Text style={styles.sectionTitle}>Riwayat Presensi</Text>
+            <FlatList
+                style={styles.content}
+                data={history}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <View style={styles.historyItem}>
+                        <View>
+                            <Text style={styles.historySubject}>{item.class_name}</Text>
+                            <Text style={styles.historyDate}>
+                                {new Date(item.timestamp).toLocaleDateString('id-ID', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'long',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </Text>
+                        </View>
+                        <View style={styles.historyBadge}>
+                            <Text style={styles.historyBadgeText}>HADIR</Text>
+                        </View>
                     </View>
-
-                    <FlatList
-                        data={history}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => (
-                            <View style={styles.historyItem}>
-                                <View>
-                                    <Text style={styles.historySubject}>{item.class_name}</Text>
-                                    <Text style={styles.historyDate}>
-                                        {new Date(item.timestamp).toLocaleDateString('id-ID', {
-                                            weekday: 'long',
-                                            day: 'numeric',
-                                            month: 'long',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </Text>
-                                </View>
-                                <View style={styles.historyBadge}>
-                                    <Text style={styles.historyBadgeText}>HADIR</Text>
-                                </View>
-                            </View>
-                        )}
-                        ListEmptyComponent={
-                            <View style={styles.emptyHistory}>
-                                <Text style={styles.emptyText}>Belum ada riwayat presensi.</Text>
-                            </View>
-                        }
-                        scrollEnabled={false}
-                    />
-                </View>
-            </View>
+                )}
+                ListHeaderComponent={renderHeader}
+                ListEmptyComponent={
+                    <View style={styles.emptyHistory}>
+                        <Text style={styles.emptyText}>Belum ada riwayat presensi.</Text>
+                    </View>
+                }
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+                contentContainerStyle={{ paddingBottom: 20 }}
+            />
         </SafeAreaView>
     );
 }
