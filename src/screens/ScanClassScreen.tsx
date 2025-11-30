@@ -129,149 +129,134 @@ export default function ScanClassScreen() {
             // Simplified: Just submit to a "current active class" logic
             // For this mock, we'll just say we connected to "cls_001" (or whatever is active).
             // But to make it dynamic, let's assume the teacher created a class and we are connecting to it.
-            // We will use a specific mock ID for the "live" class created by the teacher in the other screen.
-            // Since we can't easily share state between screens without a backend or global store for "active classes",
-            // we will just simulate success.
+            if (!device.classId) return;
 
-            // Use the Class ID from the BLE advertisement
-            if (!device.classId) {
-                throw new Error('Tidak dapat menemukan ID Kelas dari sinyal Bluetooth.');
-            }
+            // Navigate to Selfie Screen instead of direct submission
+            navigation.navigate('SelfieScreen', { classId: device.classId });
+        };
 
-            await Api.submitAttendance(device.classId.toString());
-
-            Alert.alert('Berhasil', `Presensi untuk kelas ID ${device.classId} berhasil tercatat!`, [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
-        } catch (error: any) {
-            Alert.alert('Gagal', error.message || 'Gagal melakukan presensi. Coba lagi.');
-        } finally {
-            setConnectingId(null);
-        }
-    };
-
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <ArrowLeft size={24} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Pindai Kelas</Text>
-                <View style={{ width: 24 }} />
-            </View>
-
-            <View style={styles.statusContainer}>
-                {scanning ? (
-                    <>
-                        <ActivityIndicator size="large" color="#2196F3" />
-                        <Text style={styles.statusText}>Mencari kelas di sekitar...</Text>
-                    </>
-                ) : (
-                    <Text style={styles.statusText}>Pemindaian selesai.</Text>
-                )}
-            </View>
-
-            <FlatList
-                data={devices}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.list}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={styles.deviceItem}
-                        onPress={() => handleConnect(item)}
-                        disabled={connectingId !== null}
-                    >
-                        <View style={styles.deviceIcon}>
-                            <Bluetooth size={24} color="#2196F3" />
-                        </View>
-                        <View style={styles.deviceInfo}>
-                            <Text style={styles.deviceName}>
-                                {item.classId && classNames[item.classId]
-                                    ? classNames[item.classId]
-                                    : (item.name === 'Unknown Class' ? `Kelas #${item.classId || '?'}` : item.name)}
-                            </Text>
-                            <Text style={styles.deviceId}>ID: {item.classId || '?'} ({item.id})</Text>
-                        </View>
-                        {connectingId === item.id && <ActivityIndicator color="#2196F3" />}
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <ArrowLeft size={24} color="#333" />
                     </TouchableOpacity>
-                )}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>Tidak ada kelas ditemukan.</Text>
-                }
-            />
-        </SafeAreaView>
-    );
-}
+                    <Text style={styles.headerTitle}>Pindai Kelas</Text>
+                    <View style={{ width: 24 }} />
+                </View>
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 20,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    statusContainer: {
-        padding: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-    },
-    statusText: {
-        color: '#666',
-        fontSize: 14,
-    },
-    list: {
-        padding: 20,
-        gap: 12,
-    },
-    deviceItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    deviceIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#E3F2FD',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
-    },
-    deviceInfo: {
-        flex: 1,
-    },
-    deviceName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    deviceId: {
-        fontSize: 12,
-        color: '#999',
-    },
-    emptyText: {
-        textAlign: 'center',
-        color: '#999',
-        marginTop: 40,
-    },
-});
+                <View style={styles.statusContainer}>
+                    {scanning ? (
+                        <>
+                            <ActivityIndicator size="large" color="#2196F3" />
+                            <Text style={styles.statusText}>Mencari kelas di sekitar...</Text>
+                        </>
+                    ) : (
+                        <Text style={styles.statusText}>Pemindaian selesai.</Text>
+                    )}
+                </View>
+
+                <FlatList
+                    data={devices}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.list}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity
+                            style={styles.deviceItem}
+                            onPress={() => handleConnect(item)}
+                            disabled={connectingId !== null}
+                        >
+                            <View style={styles.deviceIcon}>
+                                <Bluetooth size={24} color="#2196F3" />
+                            </View>
+                            <View style={styles.deviceInfo}>
+                                <Text style={styles.deviceName}>
+                                    {item.classId && classNames[item.classId]
+                                        ? classNames[item.classId]
+                                        : (item.name === 'Unknown Class' ? `Kelas #${item.classId || '?'}` : item.name)}
+                                </Text>
+                                <Text style={styles.deviceId}>ID: {item.classId || '?'} ({item.id})</Text>
+                            </View>
+                            {connectingId === item.id && <ActivityIndicator color="#2196F3" />}
+                        </TouchableOpacity>
+                    )}
+                    ListEmptyComponent={
+                        <Text style={styles.emptyText}>Tidak ada kelas ditemukan.</Text>
+                    }
+                />
+            </SafeAreaView>
+        );
+    }
+
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: '#f5f5f5',
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 20,
+            backgroundColor: '#fff',
+            borderBottomWidth: 1,
+            borderBottomColor: '#e0e0e0',
+        },
+        headerTitle: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: '#333',
+        },
+        statusContainer: {
+            padding: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+        },
+        statusText: {
+            color: '#666',
+            fontSize: 14,
+        },
+        list: {
+            padding: 20,
+            gap: 12,
+        },
+        deviceItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#fff',
+            padding: 16,
+            borderRadius: 12,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+            elevation: 2,
+        },
+        deviceIcon: {
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            backgroundColor: '#E3F2FD',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 16,
+        },
+        deviceInfo: {
+            flex: 1,
+        },
+        deviceName: {
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: '#333',
+        },
+        deviceId: {
+            fontSize: 12,
+            color: '#999',
+        },
+        emptyText: {
+            textAlign: 'center',
+            color: '#999',
+            marginTop: 40,
+        },
+    });

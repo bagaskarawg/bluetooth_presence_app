@@ -40,6 +40,12 @@
     },
     "plugins": [
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take attendance selfies."
+        }
+      ],
+      [
         "react-native-ble-plx",
         {
           "isBackgroundEnabled": true,
@@ -47,7 +53,8 @@
             "central",
             "peripheral"
           ],
-          "bluetoothAlwaysPermission": "Izinkan aplikasi untuk menggunakan Bluetooth untuk presensi."
+          "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices",
+          "bluetoothPeripheralPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
         }
       ],
       [

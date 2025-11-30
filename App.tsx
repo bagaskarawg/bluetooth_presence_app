@@ -10,6 +10,7 @@ import CreateClassScreen from './src/screens/CreateClassScreen';
 import StudentDashboard from './src/screens/StudentDashboard';
 import ScanClassScreen from './src/screens/ScanClassScreen';
 import ClassDetailsScreen from './src/screens/ClassDetailsScreen';
+import SelfieScreen from './src/screens/SelfieScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ function AppNavigator() {
         <>
           <Stack.Screen name="StudentDashboard" component={StudentDashboard} options={{ headerShown: false }} />
           <Stack.Screen name="ScanClass" component={ScanClassScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SelfieScreen" component={SelfieScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

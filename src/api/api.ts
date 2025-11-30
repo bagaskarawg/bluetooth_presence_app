@@ -101,15 +101,32 @@ export const Api = {
   },
 
   // Student Methods
-  submitAttendance: async (classId: string): Promise<AttendanceRecord> => {
+  submitAttendance: async (classId: string, photo: any): Promise<AttendanceRecord> => {
+    const formData = new FormData();
+    formData.append('class_id', classId);
+
+    if (photo) {
+      // @ts-ignore
+      formData.append('photo', {
+        uri: photo.uri,
+        name: 'selfie.jpg',
+        type: 'image/jpeg',
+      });
+    }
+
+    const headers = getHeaders();
+    delete headers['Content-Type']; // Let fetch set the correct content type for FormData
+
     const response = await fetch(`${BASE_URL}/attendance`, {
       method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ class_id: classId }),
+      headers: headers,
+      body: formData,
     });
 
-    if (!response.ok) throw new Error('Failed to submit attendance');
-    if (!response.ok) throw new Error('Failed to submit attendance');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to submit attendance');
+    }
     return response.json();
   },
 
