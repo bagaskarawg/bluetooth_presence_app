@@ -42,7 +42,22 @@ function AppNavigator() {
   );
 }
 
+import { BluetoothService } from './src/services/BluetoothService';
+
+// ...
+
 export default function App() {
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        await BluetoothService.initialize();
+      } catch (e) {
+        console.error('Failed to initialize Bluetooth:', e);
+      }
+    };
+    init();
+  }, []);
+
   return (
     <AuthProvider>
       <NavigationContainer>

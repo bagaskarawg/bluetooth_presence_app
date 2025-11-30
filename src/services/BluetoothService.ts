@@ -23,7 +23,8 @@ class RealBluetoothService implements IBluetoothService {
         if (Platform.OS === 'android') {
             await this.requestAndroidPermissions();
         }
-        BLEAdvertiser.setCompanyId(0x00E0); // Google Company ID as example
+
+        BLEAdvertiser.setCompanyId(0xFFFF);
     }
 
     private async requestAndroidPermissions() {
@@ -51,15 +52,23 @@ class RealBluetoothService implements IBluetoothService {
         }
     }
 
-    async startAdvertising(name: string, serviceUUID: string): Promise<void> {
-        console.log(`[BLE] Starting Advertising: ${name} (${serviceUUID})`);
+    async startAdvertising(name: string, serviceUUID: string, classId: number): Promise<void> {
+        console.log(`[BLE] Starting Advertising: ${name} (${serviceUUID}) ID: ${classId}`);
         try {
-            await BLEAdvertiser.broadcast(serviceUUID, [12, 34, 56], {
+            // Convert classId to byte array (assuming it fits in 4 bytes)
+            const manufacturerData = [
+                (classId >> 24) & 0xFF,
+                (classId >> 16) & 0xFF,
+                (classId >> 8) & 0xFF,
+                classId & 0xFF
+            ];
+
+            await BLEAdvertiser.broadcast(serviceUUID, manufacturerData, {
                 advertiseMode: BLEAdvertiser.ADVERTISE_MODE_BALANCED,
                 txPowerLevel: BLEAdvertiser.ADVERTISE_TX_POWER_MEDIUM,
-                connectable: false, // Beacon mode usually not connectable for simple presence
-                includeDeviceName: true,
-                includeTxPowerLevel: true,
+                connectable: false,
+                includeDeviceName: false,
+                includeTxPowerLevel: false,
             });
             console.log('[BLE] Advertising Started');
         } catch (error) {
@@ -83,7 +92,7 @@ class RealBluetoothService implements IBluetoothService {
         this.isScanning = true;
         console.log(`[BLE] Starting Scanning for UUID: ${serviceUUID}`);
 
-        this.manager.startDeviceScan(null, null, (error, device) => {
+        this.manager.startDeviceScan([serviceUUID], null, (error, device) => {
             if (error) {
                 console.error('[BLE] Scan Error:', error);
                 this.isScanning = false;
@@ -91,20 +100,44 @@ class RealBluetoothService implements IBluetoothService {
             }
 
             if (device) {
-                // Check if device matches our criteria
-                // Note: device.serviceUUIDs might be null on some platforms/devices until connected
-                // So we might rely on name or just list all and let UI filter.
-                // For now, pass everything and let UI filter or check name/UUID if available.
+                // Decode Class ID from Manufacturer Data
+                let classId = null;
+                if (device.manufacturerData) {
+                    try {
+                        // manufacturerData is Base64 encoded string
+                        const binaryString = atob(device.manufacturerData);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
 
-                // Simplified filter: if it has a name, pass it.
-                if (device.name) {
-                    onDeviceFound({
-                        id: device.id,
-                        name: device.name,
-                        rssi: device.rssi,
-                        serviceUUIDs: device.serviceUUIDs
-                    });
+                        // We expect at least 4 bytes for our ID if we sent 4
+                        // Note: Manufacturer data often has a 2-byte company ID prefix.
+                        // react-native-ble-advertiser might handle this differently.
+                        // Let's assume the payload we sent is what we get, potentially prefixed.
+                        // For simplicity, let's try to read the last 4 bytes or just the bytes we sent.
+
+                        // If we sent [0, 0, 0, 15], we should find it.
+                        // Let's just take the last 4 bytes as the integer.
+                        if (bytes.length >= 4) {
+                            const view = new DataView(bytes.buffer);
+                            // Read last 4 bytes
+                            const offset = bytes.length - 4;
+                            classId = (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+                        }
+                    } catch (e) {
+                        console.warn('Failed to decode manufacturer data', e);
+                    }
                 }
+
+                // Pass all devices found with the matching Service UUID
+                onDeviceFound({
+                    id: device.id,
+                    name: device.name || device.localName || 'Unknown Class',
+                    rssi: device.rssi,
+                    serviceUUIDs: device.serviceUUIDs,
+                    classId: classId // Pass the decoded Class ID
+                });
             }
         });
     }

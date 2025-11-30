@@ -44,7 +44,7 @@ export default function CreateClassScreen() {
 
             // 2. Start Advertising via Bluetooth
             // We use the Class ID as the unique identifier in the advertisement data or name
-            await BluetoothService.startAdvertising(subjectName, '0000180D-0000-1000-8000-00805F9B34FB'); // Using Heart Rate UUID as example/placeholder
+            await BluetoothService.startAdvertising(subjectName, '0000180D-0000-1000-8000-00805F9B34FB', parseInt(newClass.id)); // Using Heart Rate UUID as example/placeholder
         } catch (error) {
             Alert.alert('Error', 'Gagal memulai sesi kelas.');
             console.error(error);

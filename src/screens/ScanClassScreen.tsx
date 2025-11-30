@@ -111,19 +111,14 @@ export default function ScanClassScreen() {
             // Since we can't easily share state between screens without a backend or global store for "active classes",
             // we will just simulate success.
 
-            // We'll call the API with a dummy class ID, but in a real app this ID comes from the BLE payload.
-            // Let's try to find an active class from MockApi (we need to expose a method for this or just cheat).
-            // I'll add a helper to MockApi to get *any* active class for this demo.
+            // Use the Class ID from the BLE advertisement
+            if (!device.classId) {
+                throw new Error('Tidak dapat menemukan ID Kelas dari sinyal Bluetooth.');
+            }
 
-            // For now, just alert success.
-            // NOTE: In real implementation, we need the real Class ID. 
-            // For now, we will assume the device ID IS the class ID or we use a hardcoded one for testing if needed.
-            // But since we are integrating real API, let's try to use the device ID as class ID if possible,
-            // or just hardcode '1' if we know the ID from the backend.
-            // Ideally, the BLE advertisement should contain the Class ID.
-            await Api.submitAttendance('1'); // Hardcoded for now as we don't have real BLE with Class ID payload yet.
+            await Api.submitAttendance(device.classId.toString());
 
-            Alert.alert('Berhasil', `Presensi untuk kelas "${device.name}" berhasil tercatat!`, [
+            Alert.alert('Berhasil', `Presensi untuk kelas ID ${device.classId} berhasil tercatat!`, [
                 { text: 'OK', onPress: () => navigation.goBack() }
             ]);
         } catch (error: any) {
@@ -168,8 +163,8 @@ export default function ScanClassScreen() {
                             <Bluetooth size={24} color="#2196F3" />
                         </View>
                         <View style={styles.deviceInfo}>
-                            <Text style={styles.deviceName}>{item.name || 'Kelas Tanpa Nama'}</Text>
-                            <Text style={styles.deviceId}>{item.id}</Text>
+                            <Text style={styles.deviceName}>{item.name === 'Unknown Class' ? `Kelas #${item.classId || '?'}` : item.name}</Text>
+                            <Text style={styles.deviceId}>ID: {item.classId || '?'} ({item.id})</Text>
                         </View>
                         {connectingId === item.id && <ActivityIndicator color="#2196F3" />}
                     </TouchableOpacity>
