@@ -6,6 +6,7 @@ import { Api } from '../api/api';
 import { ClassSession, AttendanceRecord } from '../types';
 import { ArrowLeft, Users, Calendar, Clock, StopCircle } from 'lucide-react-native';
 import ImageViewerModal from '../components/ImageViewerModal';
+import { BluetoothService } from '../services/BluetoothService';
 
 export default function ClassDetailsScreen() {
     const navigation = useNavigation();
@@ -22,6 +23,35 @@ export default function ClassDetailsScreen() {
         loadData();
     }, [classId]);
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+            if (!classSession?.is_active) {
+                BluetoothService.stopAdvertising();
+                return;
+            }
+
+            e.preventDefault();
+
+            Alert.alert(
+                'Keluar Halaman',
+                'Kelas masih aktif. Keluar dari halaman ini akan menghentikan pemancaran Bluetooth. Apakah Anda yakin?',
+                [
+                    { text: 'Batal', style: 'cancel', onPress: () => { } },
+                    {
+                        text: 'Ya, Keluar',
+                        style: 'destructive',
+                        onPress: async () => {
+                            await BluetoothService.stopAdvertising();
+                            navigation.dispatch(e.data.action);
+                        }
+                    }
+                ]
+            );
+        });
+
+        return unsubscribe;
+    }, [navigation, classSession]);
+
     const loadData = async () => {
         try {
             setLoading(true);
@@ -31,6 +61,16 @@ export default function ClassDetailsScreen() {
             ]);
             setClassSession(sessionData);
             setAttendanceList(attendanceData);
+
+            if (sessionData.is_active) {
+                await BluetoothService.startAdvertising(
+                    sessionData.name,
+                    '0000180D-0000-1000-8000-00805F9B34FB',
+                    parseInt(sessionData.id)
+                );
+            } else {
+                await BluetoothService.stopAdvertising();
+            }
         } catch (error) {
             console.error(error);
             Alert.alert('Error', 'Gagal memuat detail kelas.');
