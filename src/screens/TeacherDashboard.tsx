@@ -33,12 +33,12 @@ export default function TeacherDashboard() {
     const renderItem = ({ item }: { item: ClassSession }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.subjectName}>{item.subjectName}</Text>
-                {item.isActive && <View style={styles.activeBadge}><Text style={styles.activeText}>AKTIF</Text></View>}
+                <Text style={styles.subjectName}>{item.name}</Text>
+                {item.is_active && <View style={styles.activeBadge}><Text style={styles.activeText}>AKTIF</Text></View>}
             </View>
             <View style={styles.cardFooter}>
                 <Calendar size={16} color="#666" />
-                <Text style={styles.dateText}>{new Date(item.startTime).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+                <Text style={styles.dateText}>{new Date(item.start_time).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
             </View>
         </View>
     );

@@ -109,6 +109,16 @@ export const Api = {
     });
 
     if (!response.ok) throw new Error('Failed to submit attendance');
+    if (!response.ok) throw new Error('Failed to submit attendance');
+    return response.json();
+  },
+
+  getStudentAttendance: async (): Promise<any[]> => {
+    const response = await fetch(`${BASE_URL}/attendance`, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch attendance history');
     return response.json();
   },
 };

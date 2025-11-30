@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,21 @@ import { ScanLine, LogOut, History } from 'lucide-react-native';
 export default function StudentDashboard() {
     const { user, logout } = useAuth();
     const navigation = useNavigation<any>();
+    const [history, setHistory] = React.useState<any[]>([]);
+    const { Api } = require('../api/api'); // Import Api here to avoid circular dependency issues if any, or just standard import
+
+    React.useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        try {
+            const data = await Api.getStudentAttendance();
+            setHistory(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -41,10 +56,36 @@ export default function StudentDashboard() {
                         <History size={20} color="#333" />
                         <Text style={styles.sectionTitle}>Riwayat Presensi</Text>
                     </View>
-                    {/* Placeholder for history list */}
-                    <View style={styles.emptyHistory}>
-                        <Text style={styles.emptyText}>Belum ada riwayat presensi.</Text>
-                    </View>
+
+                    <FlatList
+                        data={history}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => (
+                            <View style={styles.historyItem}>
+                                <View>
+                                    <Text style={styles.historySubject}>{item.class_name}</Text>
+                                    <Text style={styles.historyDate}>
+                                        {new Date(item.timestamp).toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </Text>
+                                </View>
+                                <View style={styles.historyBadge}>
+                                    <Text style={styles.historyBadgeText}>HADIR</Text>
+                                </View>
+                            </View>
+                        )}
+                        ListEmptyComponent={
+                            <View style={styles.emptyHistory}>
+                                <Text style={styles.emptyText}>Belum ada riwayat presensi.</Text>
+                            </View>
+                        }
+                        scrollEnabled={false}
+                    />
                 </View>
             </View>
         </SafeAreaView>
@@ -145,5 +186,40 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         color: '#999',
+    },
+    historyItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    historySubject: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 4,
+    },
+    historyDate: {
+        fontSize: 12,
+        color: '#666',
+    },
+    historyBadge: {
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    historyBadgeText: {
+        color: '#2E7D32',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
 });

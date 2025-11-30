@@ -10,10 +10,10 @@ export interface User {
 export interface ClassSession {
   id: string;
   name: string;
-  teacherId: string;
-  isActive: boolean;
-  startTime: string;
-  endTime?: string;
+  teacher_id: string;
+  is_active: boolean;
+  start_time: string;
+  end_time?: string;
 }
 
 export interface AttendanceRecord {
