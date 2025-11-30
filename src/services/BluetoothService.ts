@@ -5,7 +5,7 @@ import BLEAdvertiser from 'react-native-ble-advertiser';
 // Interface for our Bluetooth Service
 export interface IBluetoothService {
     initialize(): Promise<void>;
-    startAdvertising(name: string, serviceUUID: string): Promise<void>;
+    startAdvertising(name: string, serviceUUID: string, classId: number): Promise<void>;
     stopAdvertising(): Promise<void>;
     startScanning(serviceUUID: string, onDeviceFound: (device: any) => void): Promise<void>;
     stopScanning(): Promise<void>;

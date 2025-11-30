@@ -51,6 +51,7 @@ export default function ScanClassScreen() {
     const [scanning, setScanning] = useState(true);
     const [devices, setDevices] = useState<any[]>([]);
     const [connectingId, setConnectingId] = useState<string | null>(null);
+    const [classNames, setClassNames] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         startScan();
@@ -58,6 +59,20 @@ export default function ScanClassScreen() {
             BluetoothService.stopScanning();
         };
     }, []);
+
+    const fetchClassInfo = async (classId: string) => {
+        if (classNames[classId]) return; // Already fetched
+
+        try {
+            const classInfo = await Api.getClassSession(classId);
+            setClassNames(prev => ({
+                ...prev,
+                [classId]: classInfo.name
+            }));
+        } catch (error) {
+            console.warn(`Failed to fetch info for class ${classId}`, error);
+        }
+    };
 
     const startScan = async () => {
         const hasPermission = await requestBLEPermissions();
@@ -74,7 +89,14 @@ export default function ScanClassScreen() {
         try {
             await BluetoothService.startScanning('0000180D-0000-1000-8000-00805F9B34FB', (device) => {
                 setDevices((prev) => {
-                    if (prev.find((d) => d.id === device.id)) return prev;
+                    const exists = prev.find((d) => d.id === device.id);
+                    if (exists) return prev;
+
+                    // If we found a new device with a Class ID, fetch its name
+                    if (device.classId) {
+                        fetchClassInfo(device.classId.toString());
+                    }
+
                     return [...prev, device];
                 });
             });
@@ -163,7 +185,11 @@ export default function ScanClassScreen() {
                             <Bluetooth size={24} color="#2196F3" />
                         </View>
                         <View style={styles.deviceInfo}>
-                            <Text style={styles.deviceName}>{item.name === 'Unknown Class' ? `Kelas #${item.classId || '?'}` : item.name}</Text>
+                            <Text style={styles.deviceName}>
+                                {item.classId && classNames[item.classId]
+                                    ? classNames[item.classId]
+                                    : (item.name === 'Unknown Class' ? `Kelas #${item.classId || '?'}` : item.name)}
+                            </Text>
                             <Text style={styles.deviceId}>ID: {item.classId || '?'} ({item.id})</Text>
                         </View>
                         {connectingId === item.id && <ActivityIndicator color="#2196F3" />}

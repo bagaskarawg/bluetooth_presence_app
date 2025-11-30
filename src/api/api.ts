@@ -66,6 +66,15 @@ export const Api = {
     return response.json();
   },
 
+  getClassSession: async (id: string): Promise<ClassSession> => {
+    const response = await fetch(`${BASE_URL}/classes/${id}`, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch class details');
+    return response.json();
+  },
+
   endClassSession: async (id: string): Promise<ClassSession> => {
     const response = await fetch(`${BASE_URL}/classes/${id}/end`, {
       method: 'POST',

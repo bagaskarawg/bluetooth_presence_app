@@ -9,7 +9,7 @@ export interface User {
 
 export interface ClassSession {
   id: string;
-  subjectName: string;
+  name: string;
   teacherId: string;
   isActive: boolean;
   startTime: string;
