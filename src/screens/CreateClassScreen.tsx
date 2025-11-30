@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BluetoothService } from '../services/BluetoothService';
 import { Api } from '../api/api';
@@ -108,7 +108,19 @@ export default function CreateClassScreen() {
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <View style={styles.attendanceItem}>
-                                    <Text style={styles.studentName}>{item.studentName}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                        {item.photo_url ? (
+                                            <Image
+                                                source={{ uri: item.photo_url }}
+                                                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee' }}
+                                            />
+                                        ) : (
+                                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Users size={20} color="#999" />
+                                            </View>
+                                        )}
+                                        <Text style={styles.studentName}>{item.studentName}</Text>
+                                    </View>
                                     <Text style={styles.timestamp}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
                                 </View>
                             )}

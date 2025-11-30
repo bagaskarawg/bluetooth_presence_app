@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Api } from '../api/api';
@@ -149,9 +149,21 @@ export default function ClassDetailsScreen() {
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => (
                             <View style={styles.attendanceItem}>
-                                <View>
-                                    <Text style={styles.studentName}>{item.studentName}</Text>
-                                    <Text style={styles.studentId}>{item.studentId}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    {item.photo_url ? (
+                                        <Image
+                                            source={{ uri: item.photo_url }}
+                                            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee' }}
+                                        />
+                                    ) : (
+                                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Users size={20} color="#999" />
+                                        </View>
+                                    )}
+                                    <View>
+                                        <Text style={styles.studentName}>{item.studentName}</Text>
+                                        <Text style={styles.studentId}>{item.studentId}</Text>
+                                    </View>
                                 </View>
                                 <Text style={styles.timestamp}>
                                     {new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

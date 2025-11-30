@@ -22,6 +22,7 @@ export interface AttendanceRecord {
   studentId: string;
   studentName: string;
   timestamp: string;
+  photo_url?: string;
 }
 
 export interface AuthResponse {
