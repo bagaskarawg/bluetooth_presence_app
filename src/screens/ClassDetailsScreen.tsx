@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Api } from '../api/api';
 import { ClassSession, AttendanceRecord } from '../types';
 import { ArrowLeft, Users, Calendar, Clock, StopCircle } from 'lucide-react-native';
+import ImageViewerModal from '../components/ImageViewerModal';
 
 export default function ClassDetailsScreen() {
     const navigation = useNavigation();
@@ -15,6 +16,7 @@ export default function ClassDetailsScreen() {
     const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [endingClass, setEndingClass] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -80,8 +82,18 @@ export default function ClassDetailsScreen() {
         );
     }
 
+
+
+    // ... existing code ...
+
     return (
         <SafeAreaView style={styles.container}>
+            <ImageViewerModal
+                visible={!!selectedImage}
+                imageUrl={selectedImage}
+                onClose={() => setSelectedImage(null)}
+            />
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <ArrowLeft size={24} color="#333" />
@@ -91,6 +103,7 @@ export default function ClassDetailsScreen() {
             </View>
 
             <View style={styles.content}>
+                {/* ... existing card code ... */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Text style={styles.subjectName}>{classSession.name}</Text>
@@ -151,10 +164,12 @@ export default function ClassDetailsScreen() {
                             <View style={styles.attendanceItem}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                     {item.photo_url ? (
-                                        <Image
-                                            source={{ uri: item.photo_url }}
-                                            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee' }}
-                                        />
+                                        <TouchableOpacity onPress={() => setSelectedImage(item.photo_url || null)}>
+                                            <Image
+                                                source={{ uri: item.photo_url }}
+                                                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee' }}
+                                            />
+                                        </TouchableOpacity>
                                     ) : (
                                         <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' }}>
                                             <Users size={20} color="#999" />

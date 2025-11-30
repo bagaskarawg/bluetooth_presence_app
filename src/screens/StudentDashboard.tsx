@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { ScanLine, LogOut, History } from 'lucide-react-native';
+import ImageViewerModal from '../components/ImageViewerModal';
 
 export default function StudentDashboard() {
     const { user, logout } = useAuth();
@@ -55,8 +56,15 @@ export default function StudentDashboard() {
         </View>
     );
 
+    const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
+
     return (
         <SafeAreaView style={styles.container}>
+            <ImageViewerModal
+                visible={!!selectedImage}
+                imageUrl={selectedImage}
+                onClose={() => setSelectedImage(null)}
+            />
             <View style={styles.header}>
                 <View>
                     <Text style={styles.greeting}>Halo, {user?.name}</Text>
@@ -73,17 +81,31 @@ export default function StudentDashboard() {
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.historyItem}>
-                        <View>
-                            <Text style={styles.historySubject}>{item.class_name}</Text>
-                            <Text style={styles.historyDate}>
-                                {new Date(item.timestamp).toLocaleDateString('id-ID', {
-                                    weekday: 'long',
-                                    day: 'numeric',
-                                    month: 'long',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            {item.photo_url ? (
+                                <TouchableOpacity onPress={() => setSelectedImage(item.photo_url)}>
+                                    <Image
+                                        source={{ uri: item.photo_url }}
+                                        style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee' }}
+                                    />
+                                </TouchableOpacity>
+                            ) : (
+                                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' }}>
+                                    <History size={20} color="#999" />
+                                </View>
+                            )}
+                            <View>
+                                <Text style={styles.historySubject}>{item.class_name}</Text>
+                                <Text style={styles.historyDate}>
+                                    {new Date(item.timestamp).toLocaleDateString('id-ID', {
+                                        weekday: 'long',
+                                        day: 'numeric',
+                                        month: 'long',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </Text>
+                            </View>
                         </View>
                         <View style={styles.historyBadge}>
                             <Text style={styles.historyBadgeText}>HADIR</Text>
