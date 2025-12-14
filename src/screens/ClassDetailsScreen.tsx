@@ -7,6 +7,7 @@ import { ClassSession, AttendanceRecord } from '../types';
 import { ArrowLeft, Users, Calendar, Clock, StopCircle } from 'lucide-react-native';
 import ImageViewerModal from '../components/ImageViewerModal';
 import { BluetoothService } from '../services/BluetoothService';
+import QRCode from 'react-native-qrcode-svg';
 
 export default function ClassDetailsScreen() {
     const navigation = useNavigation();
@@ -158,6 +159,16 @@ export default function ClassDetailsScreen() {
                         )}
                     </View>
 
+                    {classSession.is_active && classSession.otp && (
+                        <View style={styles.otpContainer}>
+                            <Text style={styles.otpLabel}>Kode OTP:</Text>
+                            <Text style={styles.otpValue}>{classSession.otp}</Text>
+                            <View style={styles.qrContainer}>
+                                <QRCode value={classSession.otp} size={150} />
+                            </View>
+                        </View>
+                    )}
+
                     <View style={styles.infoRow}>
                         <Calendar size={16} color="#666" />
                         <Text style={styles.infoText}>
@@ -299,6 +310,31 @@ const styles = StyleSheet.create({
         color: '#2E7D32',
         fontSize: 12,
         fontWeight: 'bold',
+    },
+    otpContainer: {
+        alignItems: 'center',
+        marginVertical: 16,
+        backgroundColor: '#f9f9f9',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    otpLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4,
+    },
+    otpValue: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 16,
+        letterSpacing: 4,
+    },
+    qrContainer: {
+        padding: 10,
+        backgroundColor: '#fff',
     },
     inactiveBadge: {
         backgroundColor: '#FFEBEE',

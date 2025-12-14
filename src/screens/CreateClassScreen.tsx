@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Users, StopCircle } from 'lucide-react-native';
 import { AttendanceRecord } from '../types';
 import ImageViewerModal from '../components/ImageViewerModal';
+import QRCode from 'react-native-qrcode-svg';
 
 export default function CreateClassScreen() {
     const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function CreateClassScreen() {
     const [subjectName, setSubjectName] = useState('');
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [classId, setClassId] = useState<string | null>(null);
+    const [otp, setOtp] = useState<string | null>(null);
     const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ export default function CreateClassScreen() {
             // 1. Create Class in Backend
             const newClass = await Api.createClassSession(subjectName);
             setClassId(newClass.id);
+            setOtp(newClass.otp || null);
             setIsSessionActive(true);
 
             // 2. Start Advertising via Bluetooth
@@ -106,6 +109,17 @@ export default function CreateClassScreen() {
                     <View style={styles.statusCard}>
                         <Text style={styles.statusTitle}>Kelas Sedang Berlangsung</Text>
                         <Text style={styles.statusSubject}>{subjectName}</Text>
+
+                        {otp && (
+                            <View style={styles.otpContainer}>
+                                <Text style={styles.otpLabel}>Kode OTP:</Text>
+                                <Text style={styles.otpValue}>{otp}</Text>
+                                <View style={styles.qrContainer}>
+                                    <QRCode value={otp} size={150} />
+                                </View>
+                            </View>
+                        )}
+
                         <Text style={styles.statusInfo}>Bluetooth Aktif - Menunggu Mahasiswa...</Text>
                     </View>
 
@@ -228,6 +242,30 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#546E7A',
         fontStyle: 'italic',
+    },
+    otpContainer: {
+        alignItems: 'center',
+        marginVertical: 16,
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+    },
+    otpLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4,
+    },
+    otpValue: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 16,
+        letterSpacing: 4,
+    },
+    qrContainer: {
+        padding: 10,
+        backgroundColor: '#fff',
     },
     attendanceListContainer: {
         flex: 1,

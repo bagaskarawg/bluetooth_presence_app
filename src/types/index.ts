@@ -14,6 +14,7 @@ export interface ClassSession {
   is_active: boolean;
   start_time: string;
   end_time?: string;
+  otp?: string;
 }
 
 export interface AttendanceRecord {

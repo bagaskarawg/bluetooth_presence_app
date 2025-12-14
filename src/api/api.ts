@@ -101,9 +101,14 @@ export const Api = {
   },
 
   // Student Methods
-  submitAttendance: async (classId: string, photo: any): Promise<AttendanceRecord> => {
+  submitAttendance: async (classId: string, photo: any, otp: string, location?: { latitude: number; longitude: number }): Promise<AttendanceRecord> => {
     const formData = new FormData();
     formData.append('class_id', classId);
+    formData.append('otp', otp);
+    if (location) {
+      formData.append('latitude', location.latitude.toString());
+      formData.append('longitude', location.longitude.toString());
+    }
 
     if (photo) {
       // @ts-ignore
