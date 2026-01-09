@@ -90,18 +90,19 @@ export default function SelfieScreen() {
 
             // Get Location
             let locationData = undefined;
+            let isMock = false;
+
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status === 'granted') {
                 const location = await Location.getCurrentPositionAsync({});
 
                 // Anti-Spoofing Check
                 if (location.mocked) {
+                    isMock = true;
                     Alert.alert(
-                        'Lokasi Palsu Terdeteksi',
-                        'Mohon matikan aplikasi Fake GPS atau Mock Location untuk melakukan presensi.'
+                        'Peringatan',
+                        'Terdeteksi penggunaan lokasi palsu. Kehadiran Anda tetap dicatat namun dengan tanda peringatan.'
                     );
-                    setSubmitting(false);
-                    return;
                 }
 
                 locationData = {
@@ -112,7 +113,7 @@ export default function SelfieScreen() {
                 Alert.alert('Warning', 'Izin lokasi tidak diberikan. Lokasi tidak akan dicatat.');
             }
 
-            await Api.submitAttendance(classId, photo, otp, locationData);
+            await Api.submitAttendance(classId, photo, otp, locationData, isMock);
             Alert.alert('Sukses', 'Presensi berhasil dicatat!', [
                 { text: 'OK', onPress: () => navigation.navigate('StudentDashboard') }
             ]);

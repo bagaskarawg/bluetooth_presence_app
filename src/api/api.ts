@@ -101,10 +101,11 @@ export const Api = {
   },
 
   // Student Methods
-  submitAttendance: async (classId: string, photo: any, otp: string, location?: { latitude: number; longitude: number }): Promise<AttendanceRecord> => {
+  submitAttendance: async (classId: string, photo: any, otp: string, location?: { latitude: number; longitude: number }, isMockLocation: boolean = false): Promise<AttendanceRecord> => {
     const formData = new FormData();
     formData.append('class_id', classId);
     formData.append('otp', otp);
+    formData.append('is_mock_location', isMockLocation ? '1' : '0');
     if (location) {
       formData.append('latitude', location.latitude.toString());
       formData.append('longitude', location.longitude.toString());
@@ -141,6 +142,30 @@ export const Api = {
     });
 
     if (!response.ok) throw new Error('Failed to fetch attendance history');
+    return response.json();
+  },
+
+  getStudents: async (): Promise<any[]> => {
+    const response = await fetch(`${BASE_URL}/students`, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch students');
+    return response.json();
+  },
+
+  submitManualAttendance: async (classId: string, studentId: number, weight: number): Promise<any> => {
+    const response = await fetch(`${BASE_URL}/attendance/manual`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        class_id: classId,
+        student_id: studentId,
+        weight: weight,
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to submit manual attendance');
     return response.json();
   },
 };

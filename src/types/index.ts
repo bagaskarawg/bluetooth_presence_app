@@ -30,3 +30,9 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+export interface Student {
+  id: number;
+  name: string;
+  nidn_npm: string;
+}

@@ -9,6 +9,8 @@ import ImageViewerModal from '../components/ImageViewerModal';
 import { BluetoothService } from '../services/BluetoothService';
 import QRCode from 'react-native-qrcode-svg';
 
+import ManualAttendanceModal from '../components/ManualAttendanceModal';
+
 export default function ClassDetailsScreen() {
     const navigation = useNavigation();
     const route = useRoute<any>();
@@ -19,6 +21,7 @@ export default function ClassDetailsScreen() {
     const [loading, setLoading] = useState(true);
     const [endingClass, setEndingClass] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [manualModalVisible, setManualModalVisible] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -135,6 +138,13 @@ export default function ClassDetailsScreen() {
                 onClose={() => setSelectedImage(null)}
             />
 
+            <ManualAttendanceModal
+                visible={manualModalVisible}
+                onClose={() => setManualModalVisible(false)}
+                classId={classId}
+                onSuccess={loadData}
+            />
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <ArrowLeft size={24} color="#333" />
@@ -185,20 +195,30 @@ export default function ClassDetailsScreen() {
                     </View>
 
                     {classSession.is_active && (
-                        <TouchableOpacity
-                            style={styles.endButton}
-                            onPress={handleEndClass}
-                            disabled={endingClass}
-                        >
-                            {endingClass ? (
-                                <ActivityIndicator color="#fff" size="small" />
-                            ) : (
-                                <>
-                                    <StopCircle size={20} color="#fff" />
-                                    <Text style={styles.endButtonText}>Akhiri Kelas</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
+                        <View style={{ gap: 10, marginTop: 16 }}>
+                            <TouchableOpacity
+                                style={styles.manualButton}
+                                onPress={() => setManualModalVisible(true)}
+                            >
+                                <Users size={20} color="#fff" />
+                                <Text style={styles.manualButtonText}>Presensi Manual</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.endButton}
+                                onPress={handleEndClass}
+                                disabled={endingClass}
+                            >
+                                {endingClass ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <>
+                                        <StopCircle size={20} color="#fff" />
+                                        <Text style={styles.endButtonText}>Akhiri Kelas</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     )}
                 </View>
 
@@ -368,6 +388,20 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     endButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    manualButton: {
+        backgroundColor: '#FFA000',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderRadius: 8,
+        gap: 8,
+    },
+    manualButtonText: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 14,
